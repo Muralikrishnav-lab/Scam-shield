@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Scam Shield: check investment messages</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%9B%A1%EF%B8%8F%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@700;800&family=Atkinson+Hyperlegible:wght@400;700&family=Noto+Sans+Tamil:wght@400;600;700&family=Noto+Sans+Devanagari:wght@400;600;700&display=swap">
+<style>
+:root {
+  --bg:#EEF1F8; --surface:#FFFFFF; --soft:#E6EAF5; --ink:#16193A; --muted:#4B5170; --line:#C5CBE0;
+  --brand:#2A2F8F; --brand-ink:#FFFFFF; --focus:#2A2F8F;
+  --hero:#1B1F4B; --bubble:#FFFFFF;
+  --hi:#FFC933; --hi-ink:#16193A;
+  --high:#C8102E; --high-bg:#FDEBEE; --med:#9A5B00; --med-bg:#FFF2D9; --low:#17794A; --low-bg:#E2F5EA;
+  --display:"Bricolage Grotesque","Noto Sans Tamil","Noto Sans Devanagari","Atkinson Hyperlegible",system-ui,sans-serif;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg:#0E1030; --surface:#171A45; --soft:#1F2354; --ink:#EDEFFC; --muted:#A9AFDB; --line:#33397A;
+    --brand:#9AA4FF; --brand-ink:#0E1030; --focus:#9AA4FF;
+    --hero:#0A0C26; --bubble:#262B6B;
+    --hi:#7A5E00; --hi-ink:#FFF1BF;
+    --high:#FF8A99; --high-bg:#3B1624; --med:#F5B95A; --med-bg:#3A2A0E; --low:#6FD7A1; --low-bg:#10321F;
+  }
+}
+:root[data-theme="dark"] {
+  --bg:#0E1030; --surface:#171A45; --soft:#1F2354; --ink:#EDEFFC; --muted:#A9AFDB; --line:#33397A;
+  --brand:#9AA4FF; --brand-ink:#0E1030; --focus:#9AA4FF;
+  --hero:#0A0C26; --bubble:#262B6B;
+  --hi:#7A5E00; --hi-ink:#FFF1BF;
+  --high:#FF8A99; --high-bg:#3B1624; --med:#F5B95A; --med-bg:#3A2A0E; --low:#6FD7A1; --low-bg:#10321F;
+}
+html { background:var(--bg); scroll-padding-top:env(safe-area-inset-top,0px); }
+* { box-sizing:border-box; }
+body {
+  margin:0; min-height:100vh; background:var(--bg); color:var(--ink);
+  font-family:"Atkinson Hyperlegible","Noto Sans Tamil","Noto Sans Devanagari",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  font-size:17px; line-height:1.55;
+}
+h1,h2,h3,.headline,.stamp,.brand-name { font-family:var(--display); }
+fieldset { border:0; margin:0; padding:0; min-width:0; }
+legend { padding:0; font-weight:700; margin-bottom:6px; }
+
+/* segmented controls */
+.seg { display:inline-flex; border:2px solid var(--line); border-radius:10px; overflow:hidden; background:var(--surface); }
+.seg label { position:relative; display:block; }
+.seg input { position:absolute; opacity:0; inset:0; width:100%; height:100%; margin:0; cursor:pointer; }
+.seg span { display:block; padding:10px 15px; min-height:44px; line-height:1.4; border-left:2px solid var(--line); }
+.seg label:first-child span { border-left:0; }
+.seg input:checked + span { background:var(--brand); color:var(--brand-ink); font-weight:700; }
+.seg input:focus-visible + span { outline:3px solid var(--focus); outline-offset:-3px; }
+
+/* composer */
+.composer { background:var(--surface); border:2px solid var(--ink); border-radius:18px; padding:20px; box-shadow:7px 7px 0 var(--hi); }
+.composer .lbl { font-weight:700; display:block; margin-bottom:6px; }
+textarea {
+  width:100%; min-height:210px; resize:vertical; font:inherit; font-size:16px; color:var(--ink);
+  background:var(--soft); border:2px dashed var(--line); border-radius:12px; padding:12px 14px;
+}
+textarea:focus { border-style:solid; border-color:var(--brand); }
+textarea:focus-visible, button:focus-visible, a:focus-visible, .hl:focus-visible, .flag:focus-visible { outline:3px solid var(--focus); outline-offset:2px; }
+.chips { display:flex; flex-wrap:wrap; gap:8px; }
+.chip { font:inherit; font-size:15px; color:var(--ink); background:var(--surface); border:2px solid var(--line); border-radius:8px; padding:8px 14px; min-height:40px; cursor:pointer; }
+.chip:hover { border-color:var(--brand); }
+.btn { font:inherit; font-weight:700; border-radius:10px; min-height:50px; padding:10px 22px; cursor:pointer; border:2px solid #16193A; background:#FFC933; color:#16193A; }
+.btn:hover { background:#FFD257; }
+.btn.ghost { background:transparent; color:var(--brand); border-color:var(--brand); }
+.btn.ghost:hover { background:transparent; }
+.btn:disabled { opacity:.6; cursor:default; }
+.row { display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
+.note { color:var(--muted); font-size:15px; margin:0; }
+
+/* case file */
+.case { background:var(--surface); border:2px solid var(--ink); border-radius:18px; padding:18px; }
+.badge { display:inline-block; font-size:14px; font-weight:700; padding:2px 10px; border-radius:6px; background:var(--soft); color:var(--muted); margin-bottom:12px; }
+.exhibit { position:relative; border-radius:12px; padding:18px 14px 64px; background-color:var(--soft); background-image:radial-gradient(var(--line) 1.2px,transparent 1.2px); background-size:15px 15px; }
+.bubble { position:relative; background:var(--bubble); border-radius:6px 18px 18px 18px; padding:14px 16px; box-shadow:0 1px 0 var(--line); }
+.bubble::before { content:""; position:absolute; left:-10px; top:0; width:0; height:0; border-top:12px solid var(--bubble); border-left:10px solid transparent; }
+.message { white-space:pre-wrap; overflow-wrap:anywhere; margin:0; font-size:17px; line-height:1.8; }
+.hl { background:var(--hi); color:var(--hi-ink); border-radius:4px; padding:2px 3px; cursor:pointer; -webkit-box-decoration-break:clone; box-decoration-break:clone; text-decoration:underline wavy var(--high); text-decoration-thickness:1.5px; text-underline-offset:4px; }
+.hl.on, .flag.on { box-shadow:0 0 0 3px var(--high); }
+.stamp { position:absolute; right:14px; bottom:10px; transform:rotate(-8deg); border:4px double currentColor; border-radius:8px; padding:5px 14px; font-weight:800; font-size:clamp(20px,4.2vw,30px); line-height:1.2; text-transform:uppercase; background:var(--surface); max-width:calc(100% - 28px); text-align:center; }
+.stamp.high { color:var(--high); } .stamp.medium { color:var(--med); } .stamp.low { color:var(--low); }
+.thump { animation:thump .6s cubic-bezier(.2,.8,.3,1) both; }
+@keyframes thump {
+  0% { transform:scale(2.6) rotate(-22deg); opacity:0; }
+  55% { transform:scale(.92) rotate(-8deg); opacity:1; }
+  75% { transform:scale(1.06) rotate(-8deg); }
+  100% { transform:scale(1) rotate(-8deg); }
+}
+.case .note { margin-top:10px; }
+.headline { margin:16px 0 0; font-size:22px; line-height:1.25; font-weight:800; }
+.explain { margin:8px 0 0; }
+.blocks { display:grid; grid-template-columns:repeat(10,1fr); gap:4px; margin-top:16px; }
+.blocks i { height:14px; border-radius:3px; background:var(--line); }
+.case.high .blocks i.f { background:var(--high); } .case.medium .blocks i.f { background:var(--med); } .case.low .blocks i.f { background:var(--low); }
+.cap { display:flex; justify-content:space-between; gap:8px; margin-top:6px; font-size:15px; color:var(--muted); }
+.status { display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-top:12px; font-size:15px; color:var(--muted); }
+.status:empty { display:none; }
+.spin { width:16px; height:16px; border-radius:50%; border:3px solid var(--line); border-top-color:var(--brand); animation:spin .8s linear infinite; flex:none; }
+@keyframes spin { to { transform:rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .spin { animation:none; border-top-color:var(--line); } .thump { animation:none; } html { scroll-behavior:auto; } }
+
+/* warning signs */
+.notes h2, .ticket h2, .help h2 { margin:0 0 12px; font-size:22px; line-height:1.2; }
+.flags { list-style:none; margin:0; padding:0; }
+.flag { background:var(--surface); border:1.5px solid var(--line); border-left:8px solid var(--high); border-radius:4px 12px 12px 4px; padding:12px 14px; cursor:pointer; }
+.flag + .flag { margin-top:10px; }
+.flag h3 { margin:0 0 6px; font-size:18px; }
+.quote { margin:0 0 6px; padding:0 0 0 10px; border-left:4px solid var(--hi); overflow-wrap:anywhere; }
+.flag p { margin:0; color:var(--muted); }
+.flag p.quote { color:var(--ink); }
+
+/* ticket */
+.ticket { background:var(--surface); border:2px dashed var(--ink); border-radius:12px; padding:18px 20px; }
+.todo { list-style:none; margin:0; padding:0; }
+.todo li + li { margin-top:10px; }
+.todo label { display:flex; gap:12px; align-items:flex-start; cursor:pointer; }
+.todo input { width:24px; height:24px; margin:1px 0 0; flex:none; accent-color:var(--brand); }
+.todo input:checked + span { color:var(--muted); text-decoration:line-through; }
+.plain { margin:0; padding-left:22px; }
+.plain li + li { margin-top:6px; }
+.ticket .sep { border:0; border-top:2px dashed var(--line); margin:18px 0; }
+
+/* help */
+.help { background:var(--hero); color:#fff; border-radius:18px; padding:20px; }
+.help p { margin:0; color:#E3E6FB; }
+.help .links { display:flex; flex-wrap:wrap; gap:10px; margin-top:14px; }
+.help .links a { display:inline-flex; align-items:center; min-height:46px; padding:8px 16px; border:2px solid #fff; border-radius:10px; color:#fff; font-weight:700; text-decoration:none; }
+.help a:focus-visible, .help button:focus-visible { outline-color:#fff; }
+.help .note { color:#C9CEF2; }
+.help .btn.ghost { color:#fff; border-color:#fff; }
+.draft { margin-top:14px; }
+.draft textarea { min-height:230px; background:var(--surface); border:2px solid var(--line); }
+
+.foot { max-width:1100px; margin:0 auto; padding:0 16px 32px; color:var(--muted); font-size:15px; }
+.foot p { margin:0 0 8px; max-width:80ch; }
+.sr { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
+
+/* nav */
+.nav { position:sticky; top:env(safe-area-inset-top,0px); z-index:10; background:var(--surface); border-bottom:2px solid var(--ink); }
+.nav-in { max-width:1100px; margin:0 auto; padding:10px 16px; display:flex; align-items:center; justify-content:space-between; gap:12px 20px; flex-wrap:wrap; }
+.brand { display:flex; align-items:center; gap:10px; color:var(--ink); text-decoration:none; }
+.brand-name { font-weight:800; font-size:22px; letter-spacing:-0.01em; }
+.links { display:flex; gap:22px; }
+.links a { color:var(--ink); font-weight:700; text-decoration:none; padding:8px 2px; }
+.links a:hover { text-decoration:underline; text-decoration-color:var(--hi); text-decoration-thickness:4px; text-underline-offset:4px; }
+@media (max-width:820px) { .links { display:none; } }
+section[id] { scroll-margin-top:76px; }
+
+/* hero */
+.hero2 { max-width:980px; margin:0 auto; padding:56px 16px 48px; text-align:center; }
+.hero2 h1 { margin:0 auto 16px; font-size:clamp(36px,7vw,68px); line-height:1.04; letter-spacing:-0.03em; font-weight:800; max-width:16ch; }
+.mk { background:linear-gradient(transparent 58%, var(--hi) 58%, var(--hi) 92%, transparent 92%); padding:0 .08em; -webkit-box-decoration-break:clone; box-decoration-break:clone; }
+.hero2 .sub { font-size:19px; color:var(--muted); max-width:52ch; margin:0 auto; }
+.vern { display:flex; flex-wrap:wrap; justify-content:center; gap:4px 22px; margin:14px 0 0; }
+.vern span { font-weight:700; font-size:19px; color:var(--brand); }
+.demo { max-width:560px; margin:34px auto 0; text-align:left; }
+.demo .hl { cursor:default; }
+.hero-cta { margin:26px 0 0; }
+a.btn { display:inline-flex; align-items:center; text-decoration:none; }
+
+/* check tool */
+.tool { background:var(--soft); border-top:2px solid var(--ink); border-bottom:2px solid var(--ink); padding:48px 16px 56px; }
+.tool-in { max-width:820px; margin:0 auto; }
+.big { margin:0 0 8px; font-size:clamp(26px,4.5vw,40px); line-height:1.1; letter-spacing:-0.02em; font-weight:800; }
+.lead { color:var(--muted); font-size:18px; margin:0 0 24px; max-width:60ch; }
+#result { margin-top:28px; scroll-margin-top:76px; }
+#result > * + * { margin-top:18px; }
+
+/* sections */
+.section { max-width:980px; margin:0 auto; padding:60px 16px; }
+.steps { list-style:none; margin:26px 0 0; padding:0; display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:22px; }
+.step .num { display:inline-grid; place-items:center; width:48px; height:48px; border:4px double var(--high); border-radius:50%; color:var(--high); font-family:var(--display); font-weight:800; font-size:22px; transform:rotate(-8deg); }
+.step h3 { margin:14px 0 6px; font-size:21px; }
+.step p { margin:0; color:var(--muted); }
+.signs { list-style:none; margin:0; padding:0; display:grid; grid-template-columns:repeat(auto-fill,minmax(270px,1fr)); gap:16px; }
+.sign { position:relative; background:var(--surface); border:2px solid var(--ink); border-radius:12px; padding:16px 16px 16px 30px; }
+.sign::before { content:""; position:absolute; left:12px; top:14px; bottom:14px; border-left:3px dotted var(--line); }
+.sign .eg { margin:0 0 10px; }
+.sign mark { background:var(--hi); color:var(--hi-ink); border-radius:4px; padding:2px 5px; font-weight:700; -webkit-box-decoration-break:clone; box-decoration-break:clone; }
+.sign h3 { margin:0 0 6px; font-size:18px; }
+.sign p { margin:0; color:var(--muted); }
+.about ul { list-style:none; margin:24px 0 0; padding:0; display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:18px 32px; }
+.about li { position:relative; padding-left:38px; }
+.about li::before { content:"\2713"; position:absolute; left:0; top:1px; width:26px; height:26px; border-radius:50%; background:var(--low); color:var(--surface); display:grid; place-items:center; font-weight:700; }
+.about strong { display:block; font-size:18px; }
+.about span { color:var(--muted); }
+.helpband { background:var(--hero); color:#fff; }
+.helpband .section { padding:56px 16px; }
+.helpband .lead { color:#D5D9F5; }
+.tiles { display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:12px; }
+.tile { display:flex; align-items:center; min-height:66px; padding:14px 18px; border:2px solid #fff; border-radius:14px; color:#fff; font-weight:700; font-size:18px; text-decoration:none; }
+.tile:hover { background:rgba(255,255,255,.12); }
+.tile.primary { background:#FFC933; color:#16193A; border-color:#FFC933; }
+.tile.primary:hover { background:#FFD257; }
+.tile:focus-visible { outline:3px solid #fff; outline-offset:3px; }
+</style>
+</head>
+<body id="top">
+<header class="nav"><div class="nav-in">
+  <a class="brand" href="#top" aria-label="Scam Shield home">
+    <svg width="38" height="38" viewBox="0 0 46 46" aria-hidden="true">
+      <path d="M23 3 39 9v13c0 10-6.5 17.5-16 21C13.500 39.500 7 32 7 22V9L23 3Z" fill="#16193A"/>
+      <path d="M15.500 23.500 21 29l10-12" fill="none" stroke="#FFC933" stroke-width="4.500" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <span class="brand-name">Scam Shield</span>
+  </a>
+  <nav class="links" aria-label="Sections">
+    <a href="#check">Check</a><a href="#how">How it works</a><a href="#signs">Scam signs</a><a href="#help">If you paid</a>
+  </nav>
+  <fieldset>
+    <legend class="sr">Explain in</legend>
+    <div class="seg" id="langSeg">
+      <label><input type="radio" name="lang" value="en" checked><span>English</span></label>
+      <label><input type="radio" name="lang" value="ta"><span lang="ta">தமிழ்</span></label>
+      <label><input type="radio" name="lang" value="hi"><span lang="hi">हिन्दी</span></label>
+    </div>
+  </fieldset>
+</div></header>
+
+<main>
+<section class="hero2">
+  <h1>Message looks <span class="mk">too good to be true</span>? Check it before you act.</h1>
+  <p class="sub">Paste a message, post or video script. Scam Shield marks the risky parts and explains them in plain English, தமிழ் or हिन्दी.</p>
+  <p class="vern"><span lang="ta">இந்த மெசேஜ் நம்பலாமா?</span><span lang="hi">क्या यह मैसेज भरोसे लायक है?</span></p>
+  <div class="demo">
+    <div class="exhibit" role="img" aria-label="Example: a scam message with the risky phrases highlighted and a High risk stamp">
+      <div class="bubble"><p class="message">Join our VIP group! Earn <mark class="hl">15% per month</mark>, <mark class="hl">guaranteed</mark>. <mark class="hl">Only 10 slots left</mark>, pay ₹999 today.</p></div>
+      <div class="stamp high thump">High risk</div>
+    </div>
+  </div>
+  <p class="hero-cta"><a class="btn" href="#check">Check a message</a></p>
+</section>
+
+<section id="check" class="tool"><div class="tool-in">
+  <h2 class="big">Check a message</h2>
+  <p class="lead">Paste it below. You get the result in a few seconds.</p>
+  <div class="composer">
+    <fieldset>
+      <legend>What did you get?</legend>
+      <div class="seg" id="kindSeg">
+        <label><input type="radio" name="kind" value="message" checked><span>Message or call</span></label>
+        <label><input type="radio" name="kind" value="post"><span>Social post or video</span></label>
+      </div>
+    </fieldset>
+    <div style="margin-top:16px">
+      <label class="lbl" for="input">Paste it here</label>
+      <textarea id="input" maxlength="6000" placeholder="For a video, paste the transcript or what the person says."></textarea>
+    </div>
+    <div style="margin-top:14px">
+      <p class="note" style="margin-bottom:8px">No message handy? Try an example:</p>
+      <div class="chips" id="samples"></div>
+    </div>
+    <div class="row" style="margin-top:18px">
+      <button class="btn" id="go" type="button">Check for scams</button>
+      <button class="btn ghost" id="clear" type="button">Clear</button>
+    </div>
+    <p class="note" style="margin-top:14px">Phone numbers, UPI IDs and long numbers are hidden before checking. Never paste an OTP or password.</p>
+        <details id="keyBox" style="margin-top:14px">
+          <summary style="cursor:pointer;font-weight:700;min-height:32px">Full analysis outside claude.ai: add your API key</summary>
+          <p class="note" style="margin:8px 0">The quick scan works without a key. For the full analysis, paste your own Claude API key. It stays in this browser tab only and is sent only to api.anthropic.com. For a real deployment, call the API from your own server instead.</p>
+          <label for="apiKey" class="sr">Claude API key</label>
+          <input id="apiKey" type="password" autocomplete="off" placeholder="sk-ant-..." style="width:100%;font:inherit;font-size:16px;padding:10px 12px;border:1.5px solid var(--line);border-radius:10px;background:var(--soft);color:var(--ink)">
+        </details>
+  </div>
+  <div id="result" aria-live="polite" aria-label="Result"></div>
+</div></section>
+
+<section id="how" class="section">
+  <h2 class="big">How it works</h2>
+  <ol class="steps">
+    <li class="step"><span class="num" aria-hidden="true">1</span><h3>Paste it</h3><p>Copy the message, post or video script and paste it in. Phone numbers and UPI IDs are hidden automatically.</p></li>
+    <li class="step"><span class="num" aria-hidden="true">2</span><h3>See the stamp</h3><p>Risky phrases are highlighted in the message, and a stamp tells you how risky it is.</p></li>
+    <li class="step"><span class="num" aria-hidden="true">3</span><h3>Act safely</h3><p>Follow the checklist, verify any claims yourself, and report it if you already paid.</p></li>
+  </ol>
+</section>
+
+<section id="signs" class="section" style="padding-top:20px">
+  <h2 class="big" id="signsTitle"></h2>
+  <p class="lead" id="signsSub"></p>
+  <ul class="signs" id="signsGrid"></ul>
+</section>
+
+<section class="section about" style="padding-top:20px">
+  <h2 class="big">Built to protect, not to sell</h2>
+  <ul>
+    <li><strong>No investment advice</strong><span>It never says buy, sell or hold, and never predicts prices.</span></li>
+    <li><strong>Your numbers stay hidden</strong><span>Phone numbers, UPI IDs and long numbers are masked in your browser before anything is checked.</span></li>
+    <li><strong>Nothing to sell</strong><span>No brokers, no ads, no commissions, and it never asks for an OTP or bank details.</span></li>
+    <li><strong>Honest about its limits</strong><span>A clean result is not proof of safety. Always verify with official sources.</span></li>
+  </ul>
+</section>
+
+<section id="help" class="helpband"><div class="section">
+  <h2 class="big" id="helpTitle"></h2>
+  <p class="lead" id="helpText"></p>
+  <div class="tiles">
+    <a class="tile primary" id="callLink" href="tel:1930"></a>
+    <a class="tile" id="cyberLink" href="https://cybercrime.gov.in" target="_blank" rel="noopener noreferrer"></a>
+    <a class="tile" id="scoresLink" href="https://scores.sebi.gov.in" target="_blank" rel="noopener noreferrer"></a>
+  </div>
+</div></section>
+</main>
+
+<footer class="foot" style="padding-top:28px">
+  <p>Scam Shield looks for warning signs. It does not give buy, sell or hold advice, does not predict prices, and does not promote any broker, app or product.</p>
+  <p>A clean result does not prove a message is safe. This is not legal or financial advice.</p>
+</footer>
+
+<script>
+// ===== LOGIC (no DOM) =====
+const TYPES = {
+  guaranteed: { w:25,
+    en:['Promise of guaranteed returns','No investment can promise a sure profit. Hearing "guaranteed" or "no risk" is the biggest scam signal.'],
+    ta:['உறுதியான லாபம் என்ற வாக்குறுதி','எந்த முதலீட்டிலும் லாபம் உறுதி கிடையாது. "உறுதி" என்று சொன்னால் அது மோசடி அறிகுறி.'],
+    hi:['पक्के मुनाफ़े का वादा','किसी भी निवेश में मुनाफ़ा पक्का नहीं होता। "गारंटी" कहना धोखाधड़ी का संकेत है।'] },
+  unrealistic: { w:20,
+    en:['Returns that are too good to be true','Several times your money in a short time is not realistic. Real investments move slowly and can also fall.'],
+    ta:['நம்ப முடியாத அதிக லாபம்','குறுகிய காலத்தில் பல மடங்கு லாபம் என்பது சாத்தியமில்லை.'],
+    hi:['अवास्तविक रूप से ज़्यादा मुनाफ़ा','थोड़े समय में कई गुना मुनाफ़ा संभव नहीं है।'] },
+  urgency: { w:10,
+    en:['Pressure to act fast','"Today only" and "last chance" are used to stop you from thinking or asking family.'],
+    ta:['அவசரப்படுத்தும் அழுத்தம்','"இன்றே", "கடைசி வாய்ப்பு" என்பது யோசிக்க விடாமல் செய்யும் தந்திரம்.'],
+    hi:['जल्दबाज़ी का दबाव','"आज ही", "आख़िरी मौक़ा" सोचने का समय न देने की चाल है।'] },
+  group: { w:12,
+    en:['Pulls you into a private group','Scammers use WhatsApp or Telegram groups to push "tips" and then ask for money.'],
+    ta:['தனி குழுவில் சேர அழைப்பு','WhatsApp/Telegram குழுக்களில் டிப்ஸ் தந்து பணம் பறிப்பது பொதுவான மோசடி.'],
+    hi:['प्राइवेट ग्रुप में जोड़ने की कोशिश','WhatsApp/Telegram ग्रुप में टिप्स देकर पैसे ठगना आम तरीक़ा है।'] },
+  insider: { w:15,
+    en:['"Insider" or secret information','Claiming secret information builds false trust. Real insider tips are also illegal.'],
+    ta:['ரகசிய / இன்சைடர் தகவல்','ரகசிய தகவல் என்று சொல்வது நம்பிக்கையை உருவாக்கும் தந்திரம்; சட்டவிரோதமும் கூட.'],
+    hi:['"इनसाइडर" / गुप्त जानकारी','गुप्त जानकारी का दावा भरोसा जीतने की चाल है, और ग़ैरक़ानूनी भी।'] },
+  advice: { w:12,
+    en:['Selling stock tips or calls','Giving paid or private buy and sell tips needs SEBI registration. Be careful with anyone who says "follow my calls".'],
+    ta:['பங்கு டிப்ஸ் / கால்கள் விற்பனை','பணத்துக்கு பங்கு டிப்ஸ் தர SEBI பதிவு தேவை. எச்சரிக்கையாக இருங்கள்.'],
+    hi:['स्टॉक टिप्स / कॉल बेचना','पैसे लेकर टिप्स देने के लिए SEBI पंजीकरण ज़रूरी है। सावधान रहें।'] },
+  payment: { w:15,
+    en:['Asks for money or fees first','Paying a "registration fee" or "joining fee" before anything else is a common scam step.'],
+    ta:['முன்பணம் / கட்டணம் கேட்பது','முதலில் பணம் கட்ட சொல்வது மோசடியின் பொதுவான அறிகுறி.'],
+    hi:['पहले पैसे / फ़ीस माँगना','पहले पैसे भरने को कहना ठगी का आम संकेत है।'] },
+  sensitive: { w:25,
+    en:['Asks for OTP or personal details','Never share an OTP, PIN, password or screen with anyone. Banks and brokers never ask for them.'],
+    ta:['OTP / தனிப்பட்ட விவரங்கள் கேட்பது','OTP, PIN, பாஸ்வேர்டு யாருக்கும் தராதீர்கள்.'],
+    hi:['OTP / निजी जानकारी माँगना','OTP, PIN, पासवर्ड किसी को न दें।'] },
+  registration: { w:8,
+    en:['Claim of being registered: verify it','Anyone can write "SEBI registered". Check the registration number yourself on the SEBI website.'],
+    ta:['"SEBI பதிவு பெற்றது" என்ற கூற்று: சரிபார்க்கவும்','பதிவு எண்ணை SEBI இணையதளத்தில் நீங்களே சரிபாருங்கள்.'],
+    hi:['"SEBI पंजीकृत" का दावा: जाँचें','पंजीकरण नंबर SEBI की वेबसाइट पर ख़ुद जाँचें।'] },
+  app: { w:15,
+    en:['Asks you to install an app or APK','Files from outside the official app store can steal your data or money.'],
+    ta:['செயலி / APK பதிவிறக்கம்','அதிகாரப்பூர்வ ஸ்டோர் அல்லாத APK கோப்புகள் ஆபத்தானவை.'],
+    hi:['ऐप / APK डाउनलोड कराना','ऑफ़िशियल स्टोर के बाहर की APK फ़ाइलें ख़तरनाक हो सकती हैं।'] },
+  other: { w:5,
+    en:['Other warning sign','This part looks suspicious.'],
+    ta:['மற்ற எச்சரிக்கை அறிகுறி','இந்த பகுதி சந்தேகத்திற்குரியது.'],
+    hi:['अन्य चेतावनी संकेत','यह हिस्सा संदिग्ध लगता है।'] }
+};
+
+const RULES = [
+  { type:'guaranteed', re:/guarantee(?:d|s)?|assured\s+(?:returns?|profits?)|sure[\s-]?shot|100\s?%\s*(?:profit|returns?|safe|sure|accuracy)|risk[\s-]?free|no[\s-]risk|zero\s+(?:risk|loss)|fixed\s+returns?|never\s+(?:lose|lost|fail)|can(?:'|’)?t\s+lose|loss[\s-]?proof|(?:லாபம்|வருமானம்)\s*உறுதி|உறுதியான\s*(?:லாபம்|வருமானம்)|ரிஸ்க்\s*இல்லை|(?:पक्का|गारंटीड?)\s*(?:मुनाफ़ा|मुनाफा|रिटर्न|कमाई)|मुनाफ़ा\s*पक्का|मुनाफा\s*पक्का|जोखिम\s*(?:नहीं|मुक्त)|रिस्क\s*फ्री/giu },
+  { type:'unrealistic', re:/\b\d{1,3}\s?%\s*(?:returns?\s*)?(?:per|a|every|each|\/)?\s*(?:day|week|month|daily|weekly|monthly)\b|\b\d{1,3}\s?%\s*(?:returns?\s*)?(?:in|within)\s*(?:a\s*)?(?:day|week|month|\d+\s*(?:days?|weeks?|months?))\b|double\s+(?:your\s+)?(?:money|investment)|\b(?:2|3|5|10)x\b(?:\s*returns?)?|(?:turned|turn|made)\s+(?:₹|rs\.?\s*)?[\d,.]+\s*(?:k|thousand|lakhs?|crores?)?\s*into\s*(?:₹|rs\.?\s*)?[\d,.]+\s*(?:k|thousand|lakhs?|crores?)|(?:மாதம்|வாரம்|தினமும்)\s*\d{1,3}\s?%|\d{1,3}\s?%\s*(?:மாதம்|வாரம்)|இரட்டிப்பு|(?:हर\s*)?(?:महीने|रोज़|रोज|हफ़्ते)\s*\d{1,3}\s?%|\d{1,3}\s?%\s*(?:प्रति\s*माह|महीने|हर\s*महीने)|दोगुना|तिगुना/giu },
+  { type:'urgency', re:/today\s+only|only\s+today|limited\s+(?:seats?|slots?|spots?|period|time|offer)|last\s+(?:chance|day|few)|hurry|act\s+now|don(?:'|’)?t\s+miss|only\s+\d+\s+(?:slots?|seats?|spots?)\s+(?:left|remaining)|(?:offer|deal)\s+(?:ends|expires)[^.!\n]{0,20}|இன்றே|கடைசி வாய்ப்பு|உடனே|\d+\s*இடங்கள் மட்டுமே|आज\s*ही|आख़िरी\s*मौक़ा|आखिरी\s*मौका|सीमित\s*(?:सीटें|समय)|जल्दी\s*करें/giu },
+  { type:'group', re:/whats\s?app\s+(?:group|channel|community)|telegram(?:\s+(?:group|channel))?|vip\s+(?:group|channel|members?|tips)|premium\s+(?:group|channel|tips)|join\s+(?:our|my|the|this)\s+(?:\w+\s+)?(?:group|channel|community)|t\.me\/\S+|wa\.me\/\S+|chat\.whatsapp\.com\/\S+|குழுவில்(?:\s*சேருங்கள்)?|சேனலில்|ग्रुप\s*(?:में|से)?\s*जुड़|ग्रुप\s*जॉइन|चैनल\s*जॉइन/giu },
+  { type:'insider', re:/ரகசிய\s*இன்சைடர்(?:\s*தகவல்)?|insider|operator\s+(?:calls?|tips?|information)|bulk\s+deal\s+info|jackpot|secret\s+(?:tips?|strategy|formula|method)|inside\s+information|ரகசிய(?:\s*தகவல்)?|இன்சைடர்|इनसाइडर|गुप्त\s*(?:जानकारी|टिप्स)|सीक्रेट/giu },
+  { type:'advice', re:/not\s+(?:a\s+)?sebi[\s-]*registered(?:\s+advice)?|(?:stock|trading|intraday|option|f&o|nifty|sure|vip)\s+(?:tips?|calls?)|(?:tips?|calls?)\s+(?:provider|service)|follow\s+my\s+calls?|பங்கு\s*டிப்ஸ்|स्टॉक\s*टिप्स|ट्रेडिंग\s*टिप्स/giu },
+  { type:'payment', re:/(?:registration|joining|processing|activation|membership|subscription)\s+(?:fee|charges?|amount)|pay\s+(?:first|now|today|₹|rs\.?)\s*[\d,]*|(?:send|transfer|deposit)\s+(?:₹|rs\.?\s*)?[\d,]+|₹\s?[\d,]+\s*(?:only\s*)?(?:to\s+(?:join|start|activate|enter)|registration|fee)|premium\s+course[^.!\n]{0,20}₹\s?[\d,]+|(?:ரிஜிஸ்ட்ரேஷன்|பதிவு)\s*கட்டணம்|கட்டணம்\s*செலுத்த|फ़ीस\s*जमा|रजिस्ट्रेशन\s*(?:फ़ीस|शुल्क)|शुल्क\s*जमा/giu },
+  { type:'sensitive', re:/(?<![A-Za-z])otp(?![A-Za-z])|(?<![A-Za-z])pin(?![A-Za-z])|cvv|password|aadhaar|aadhar|pan\s+(?:card|number)|net\s?banking|screen\s?share|anydesk|teamviewer|ஓடிபி|ओटीपी|आधार\s*(?:नंबर|कार्ड)/giu },
+  { type:'registration', re:/sebi[\s-]*(?:registered|registration|approved|certified|regn?\.?|authori[sz]ed)|(?:registered|certified)\s+(?:research\s+)?(?:analyst|advis[eo]r|investment\s+advis[eo]r)|\bIN[HAZ]\d{9}\b|(?:nse|bse|rbi|government)[\s-]*(?:approved|certified|authori[sz]ed)|SEBI\s*(?:பதிவு|அங்கீகரிக்கப்பட்ட)|SEBI\s*(?:पंजीकृत|रजिस्टर्ड|मान्यता)/giu },
+  { type:'app', re:/\bapk\b|download\s+(?:our|the|this)\s+(?:app|apk)|install\s+(?:our|the|this)\s+app|செயலியை?\s*பதிவிறக்க|ऐप\s*डाउनलोड/giu }
+];
+
+function mask(text) {
+  let n = 0;
+  const hide = label => () => { n++; return label; };
+  let t = text.replace(/[\w.\-]+@[\w\-]+(?:\.[\w\-]+)*/g, hide('[ID hidden]'));
+  t = t.replace(/(?<!\d)(?:\+?91[\s-]?)?[6-9]\d{4}[\s-]?\d{5}(?!\d)/g, hide('[phone hidden]'));
+  t = t.replace(/(?<![\dA-Za-z])\d{9,18}(?![\dA-Za-z])/g, hide('[number hidden]'));
+  return { text: t, n };
+}
+
+function scan(text) {
+  const hits = [];
+  for (const r of RULES) {
+    for (const m of text.matchAll(r.re)) {
+      if (!m[0].trim()) continue;
+      const q = m[0].trim().replace(/[.,;:!?)\]]+$/, '');
+      if (!q) continue;
+      hits.push({ type: r.type, s: m.index, e: m.index + q.length, q });
+    }
+  }
+  const byType = new Map();
+  for (const h of hits) {
+    if (!byType.has(h.type)) byType.set(h.type, []);
+    byType.get(h.type).push(h);
+  }
+  let score = 0;
+  for (const t of byType.keys()) score += TYPES[t].w;
+  if (byType.size >= 4) score += 10;
+  score = Math.min(100, score);
+  const verdict = score >= 55 ? 'high' : score >= 25 ? 'medium' : 'low';
+  const flags = [...byType.entries()].map(([type, hs]) => ({
+    type,
+    quotes: [...new Set(hs.map(h => h.q))].slice(0, 3),
+    ranges: hs.map(h => ({ s: h.s, e: h.e }))
+  }));
+  return { verdict, score, flags };
+}
+
+function locate(text, quote) {
+  if (!quote) return [];
+  const lower = text.toLowerCase();
+  let q = quote.toLowerCase().trim();
+  let i = lower.indexOf(q);
+  if (i < 0) { q = q.replace(/^[\s"'“”‘’.,;:!?-]+|[\s"'“”‘’.,;:!?-]+$/g, ''); i = q ? lower.indexOf(q) : -1; }
+  return i < 0 ? [] : [{ s: i, e: i + q.length }];
+}
+
+function normalizeAI(out, text) {
+  if (!out || typeof out !== 'object') return null;
+  let score = Math.max(0, Math.min(100, Math.round(Number(out.score)) || 0));
+  let verdict = ['high', 'medium', 'low'].includes(out.verdict) ? out.verdict : (score >= 55 ? 'high' : score >= 25 ? 'medium' : 'low');
+  const flags = (Array.isArray(out.flags) ? out.flags : []).slice(0, 6).map(f => {
+    const quote = String((f && f.quote) || '').trim();
+    return { type: TYPES[f && f.type] ? f.type : 'other', quotes: quote ? [quote] : [], ranges: locate(text, quote), why: String((f && f.why) || '') };
+  }).filter(f => f.quotes.length || f.why);
+  const list = v => (Array.isArray(v) ? v : []).map(x => String(x)).filter(Boolean).slice(0, 5);
+  return { verdict, score, headline: String(out.headline || ''), explanation: String(out.explanation || ''), flags, actions: list(out.actions), verify: list(out.verify) };
+}
+
+function resolveSpans(flags) {
+  const all = [];
+  flags.forEach((f, fi) => (f.ranges || []).forEach(r => all.push({ s: r.s, e: r.e, fi })));
+  all.sort((a, b) => a.s - b.s || (b.e - b.s) - (a.e - a.s));
+  const out = []; let end = -1;
+  for (const r of all) { if (r.s >= end) { out.push(r); end = r.e; } }
+  return out;
+}
+
+// ===== TEXT =====
+const LANGNAME = { en: 'English', ta: 'Tamil (தமிழ்)', hi: 'Hindi (हिन्दी)' };
+const I18N = {
+  en: { high:'High risk', medium:'Suspicious', low:'No clear warning signs', score:'Risk score', of:'out of 100',
+    found:'Your message, with risky parts marked', signs:'Warning signs', none:'No warning signs matched.',
+    todo:'What to do now', verify:'Check before you trust it', paid:'Already paid or shared details?',
+    paidText:'Call 1930 (cyber crime helpline) or report at cybercrime.gov.in. If money went out by UPI or bank, call 1930 right away: the first hours matter. For investment complaints against SEBI-regulated firms, file on SEBI SCORES.',
+    draft:'Draft my complaint', drafting:'Writing your draft…', copy:'Copy', copied:'Copied', quick:'Quick scan', full:'Full analysis',
+    thinking:'Getting a fuller explanation…', stop:'Stop', noai:'Full analysis is not available here (add an API key below), so this is the quick scan only.',
+    hint:'Tap a highlight to see why.', cyber:'Report on cybercrime.gov.in', scores:'Open SEBI SCORES',
+    draftNote:'Fill the [brackets] with your own details before sending. The draft is in English.',
+    hidden:n => n + ' private detail' + (n > 1 ? 's' : '') + ' hidden before checking.',
+    headline:{ high:'Several classic scam signs. Do not pay or reply.', medium:'Some warning signs. Check before you do anything.', low:'The quick scan found no clear warning signs. Stay careful.' },
+    actions:['Do not reply, click links or pay anything.','Never share an OTP, PIN or password with anyone.','Check any "SEBI registered" claim yourself on sebi.gov.in under Intermediaries.','Show the message to a family member you trust before you act.'],
+    err:{ not_granted:'Claude analysis was not allowed, so this is the quick scan only.', rate_limited:'Too many checks at once. Wait a moment and try again.', def:'The full analysis did not work this time. Showing the quick scan.' } },
+  ta: { high:'அதிக ஆபத்து', medium:'சந்தேகத்திற்குரியது', low:'தெளிவான எச்சரிக்கை இல்லை', score:'ஆபத்து மதிப்பெண்', of:'100-ல்',
+    found:'உங்கள் செய்தி: ஆபத்தான பகுதிகள் குறிக்கப்பட்டுள்ளன', signs:'எச்சரிக்கை அறிகுறிகள்', none:'எச்சரிக்கை அறிகுறிகள் எதுவும் கிடைக்கவில்லை.',
+    todo:'இப்போது என்ன செய்வது', verify:'நம்புவதற்கு முன் சரிபாருங்கள்', paid:'ஏற்கனவே பணம் செலுத்திவிட்டீர்களா? விவரங்களை பகிர்ந்துவிட்டீர்களா?',
+    paidText:'1930 (சைபர் குற்ற உதவி எண்) அழைக்கவும் அல்லது cybercrime.gov.in-ல் புகாரளிக்கவும். UPI/வங்கி மூலம் பணம் அனுப்பியிருந்தால் உடனே 1930-ஐ அழைக்கவும்: முதல் சில மணி நேரம் முக்கியம். SEBI கட்டுப்பாட்டில் உள்ள நிறுவனங்கள் மீதான முதலீட்டு புகார்களுக்கு SEBI SCORES-ல் பதிவு செய்யுங்கள்.',
+    draft:'புகார் கடிதம் தயாரிக்கவும்', drafting:'கடிதம் எழுதப்படுகிறது…', copy:'நகலெடு', copied:'நகலெடுக்கப்பட்டது', quick:'விரைவு சோதனை', full:'முழு பகுப்பாய்வு',
+    thinking:'முழு விளக்கம் தயாராகிறது…', stop:'நிறுத்து', noai:'முழு பகுப்பாய்வு இங்கே கிடைக்கவில்லை (கீழே API key சேர்க்கவும்); இது விரைவு சோதனை மட்டுமே.',
+    hint:'காரணம் அறிய குறிக்கப்பட்ட பகுதியை தட்டவும்.', cyber:'cybercrime.gov.in-ல் புகாரளிக்க', scores:'SEBI SCORES திறக்க',
+    draftNote:'அனுப்பும் முன் [அடைப்புக்குறி] இடங்களில் உங்கள் விவரங்களை நிரப்புங்கள். கடிதம் ஆங்கிலத்தில் இருக்கும்.',
+    hidden:n => n + ' தனிப்பட்ட விவரங்கள் சோதனைக்கு முன் மறைக்கப்பட்டன.',
+    headline:{ high:'பல பொதுவான மோசடி அறிகுறிகள் உள்ளன. பணம் செலுத்தவோ பதில் அளிக்கவோ வேண்டாம்.', medium:'சில எச்சரிக்கை அறிகுறிகள் உள்ளன. எதுவும் செய்யும் முன் சரிபாருங்கள்.', low:'விரைவு சோதனையில் தெளிவான எச்சரிக்கை அறிகுறிகள் இல்லை. எச்சரிக்கையுடன் இருங்கள்.' },
+    actions:['பதில் அளிக்காதீர்கள், இணைப்புகளை திறக்காதீர்கள், பணம் செலுத்தாதீர்கள்.','OTP, PIN, பாஸ்வேர்டை யாருடனும் பகிராதீர்கள்.','"SEBI பதிவு" என்ற கூற்றை sebi.gov.in-ல் Intermediaries பகுதியில் நீங்களே சரிபாருங்கள்.','செயல்படுவதற்கு முன் நம்பகமான குடும்ப உறுப்பினரிடம் இந்த செய்தியை காட்டுங்கள்.'],
+    err:{ not_granted:'Claude பகுப்பாய்வுக்கு அனுமதி இல்லை; இது விரைவு சோதனை மட்டுமே.', rate_limited:'ஒரே நேரத்தில் அதிக சோதனைகள். சிறிது நேரம் கழித்து முயற்சிக்கவும்.', def:'முழு பகுப்பாய்வு இந்த முறை வேலை செய்யவில்லை. விரைவு சோதனை காட்டப்படுகிறது.' } },
+  hi: { high:'ज़्यादा ख़तरा', medium:'संदिग्ध', low:'कोई साफ़ चेतावनी नहीं', score:'जोखिम स्कोर', of:'100 में से',
+    found:'आपका संदेश: जोखिम वाले हिस्से चिह्नित', signs:'चेतावनी के संकेत', none:'कोई चेतावनी संकेत नहीं मिला।',
+    todo:'अभी क्या करें', verify:'भरोसा करने से पहले जाँचें', paid:'पैसे दे चुके हैं या जानकारी साझा कर दी?',
+    paidText:'1930 (साइबर अपराध हेल्पलाइन) पर कॉल करें या cybercrime.gov.in पर रिपोर्ट करें। UPI/बैंक से पैसे भेजे हैं तो तुरंत 1930 पर कॉल करें: शुरुआती कुछ घंटे अहम होते हैं। SEBI-नियंत्रित संस्थाओं के ख़िलाफ़ निवेश शिकायत SEBI SCORES पर दर्ज करें।',
+    draft:'शिकायत का मसौदा बनाएँ', drafting:'मसौदा लिखा जा रहा है…', copy:'कॉपी करें', copied:'कॉपी हो गया', quick:'तेज़ जाँच', full:'पूरा विश्लेषण',
+    thinking:'पूरा विवरण तैयार हो रहा है…', stop:'रोकें', noai:'पूरा विश्लेषण यहाँ उपलब्ध नहीं है (नीचे API key जोड़ें), इसलिए यह सिर्फ़ तेज़ जाँच है।',
+    hint:'कारण जानने के लिए चिह्नित हिस्से पर टैप करें।', cyber:'cybercrime.gov.in पर रिपोर्ट करें', scores:'SEBI SCORES खोलें',
+    draftNote:'भेजने से पहले [ब्रैकेट] वाली जगह अपनी जानकारी भरें। मसौदा अंग्रेज़ी में है।',
+    hidden:n => 'जाँच से पहले ' + n + ' निजी जानकारी छिपा दी गई।',
+    headline:{ high:'कई आम ठगी के संकेत हैं। पैसे न दें, जवाब न दें।', medium:'कुछ चेतावनी के संकेत हैं। कुछ भी करने से पहले जाँचें।', low:'तेज़ जाँच में कोई साफ़ चेतावनी नहीं मिली। फिर भी सावधान रहें।' },
+    actions:['जवाब न दें, लिंक न खोलें, कोई पैसा न भेजें।','OTP, PIN या पासवर्ड किसी को न बताएँ।','"SEBI पंजीकृत" के दावे को sebi.gov.in पर Intermediaries में ख़ुद जाँचें।','कोई क़दम उठाने से पहले भरोसेमंद परिवारजन को संदेश दिखाएँ।'],
+    err:{ not_granted:'Claude विश्लेषण की अनुमति नहीं मिली, इसलिए यह सिर्फ़ तेज़ जाँच है।', rate_limited:'एक साथ बहुत ज़्यादा जाँच। थोड़ी देर बाद कोशिश करें।', def:'इस बार पूरा विश्लेषण नहीं हो पाया। तेज़ जाँच दिखाई जा रही है।' } }
+};
+
+const SAMPLES = [
+  { label:'WhatsApp tip', kind:'message', text:'🔥 VIP Stock Tips Group 🔥\nJoin our Telegram channel t.me/profit_kings_vip. Our SEBI registered analyst (INH000000000) gives 100% sure-shot tips. Earn 15% per month GUARANTEED, zero risk! Only 10 slots left. Pay ₹999 registration today and send your OTP to activate. Call 98765 43210.' },
+  { label:'தமிழ் செய்தி', kind:'message', text:'வணக்கம்! எங்கள் WhatsApp குழுவில் இன்றே சேருங்கள். ரகசிய இன்சைடர் தகவல் மூலம் மாதம் 30% லாபம் உறுதி, ரிஸ்க் இல்லை. கடைசி வாய்ப்பு: ₹500 ரிஜிஸ்ட்ரேஷன் கட்டணம் UPI-ல் செலுத்துங்கள்.' },
+  { label:'Finfluencer video', kind:'post', text:'Bro, in this video I will show how I turned 10 thousand into 5 lakhs in just 3 months. This is not SEBI registered advice, just my personal calls, but follow my calls and you will never lose. Join my premium course for ₹4999, offer ends tonight! Download our app from the link in the description.' },
+  { label:'Normal notice', kind:'message', text:'Mutual fund investments are subject to market risks. Read all scheme related documents carefully before investing. KYC is a one-time exercise. You can check your KYC status on the official website of your KYC registration agency.' }
+];
+
+function buildPrompt(text, kind, lang) {
+  const type = kind === 'post'
+    ? 'a social media post or video transcript. Also look for finfluencer red flags: advice without registration, profit screenshots or cherry-picked returns, "not SEBI registered but follow my calls", paid courses or groups, urgency.'
+    : 'a direct message (WhatsApp, Telegram, SMS, email or call script).';
+  return `You are Scam Shield, a consumer-protection assistant for first-time retail investors in India, many from Tier-2 and Tier-3 cities, some elderly or with limited financial literacy. You help them spot investment scams and misleading finance content.
+
+The text below is ${type}
+Private details such as phone numbers were already hidden.
+
+TEXT:
+"""
+${text}
+"""
+
+Rules:
+- Only look for warning signs. NEVER give buy, sell or hold advice, never predict prices or returns, never recommend any broker, product or app.
+- Do not be alarmist about genuine regulatory notices or ordinary investor-education text. If there are no real warning signs, use verdict "low" and return an empty flags array.
+- Write headline, explanation, each flag "why", actions and verify items in ${LANGNAME[lang]}, in simple everyday words a school-leaver can follow: short sentences, no jargon. Keep terms like SEBI, UPI, OTP in Latin letters.
+- Each flag "quote" MUST be copied character for character from the TEXT above (2 to 12 words). At most 6 flags.
+- Each flag "type" must be one of: guaranteed, unrealistic, urgency, group, insider, advice, payment, sensitive, registration, app, other.
+- verdict: "high" (very likely a scam or dangerous), "medium" (suspicious, verify first), "low" (no clear warning signs). score: integer 0 to 100.
+- headline: one sentence. explanation: 2 to 4 short sentences. actions: 3 or 4 concrete things the reader should do right now. verify: 2 or 3 things to check independently (for example the SEBI registration, official app store, official website).
+
+Reply with ONLY this JSON and nothing else:
+{"verdict":"high","score":90,"headline":"...","explanation":"...","flags":[{"quote":"...","type":"guaranteed","why":"..."}],"actions":["..."],"verify":["..."]}`;
+}
+
+function buildComplaintPrompt(text, flags) {
+  const types = flags.map(f => TYPES[f.type].en[0]).join('; ') || 'suspicious investment solicitation';
+  return `Write a short, formal complaint draft in English that an Indian retail investor can adapt and submit to the cyber crime portal (cybercrime.gov.in) or SEBI SCORES, about the suspicious message below.
+
+Message (private details hidden):
+"""
+${text}
+"""
+
+Warning signs identified: ${types}.
+
+Rules: Plain text only, under 220 words. Do not invent any facts. Where the complainant must supply a fact (date and time received, sender number or handle, platform, amount paid, transaction ID, UPI ID or account used, name of the firm), put a placeholder in square brackets. Quote the key claims from the message. State clearly what the complainant asks for (investigation and action against the sender). Do not give legal advice or promise any outcome.`;
+}
+
+// ===== UI =====
+function h(tag, props = {}, ...kids) {
+  const e = document.createElement(tag);
+  for (const [k, v] of Object.entries(props)) {
+    if (v == null || v === false) continue;
+    if (k === 'class') e.className = v;
+    else if (k === 'text') e.textContent = v;
+    else if (k.startsWith('on')) e.addEventListener(k.slice(2), v);
+    else e.setAttribute(k, v === true ? '' : v);
+  }
+  for (const kid of kids.flat()) {
+    if (kid == null || kid === false) continue;
+    e.append(kid.nodeType ? kid : document.createTextNode(kid));
+  }
+  return e;
+}
+
+const MODELS = ['claude-sonnet-5-5', 'claude-sonnet-4-6', 'claude-haiku-4-5-20251001'];
+const state = { lang: 'en', kind: 'message', runId: 0, ctl: null, view: null };
+let claudeP = null;
+
+function getKey() {
+  const el = document.getElementById('apiKey');
+  return el ? el.value.trim() : '';
+}
+
+function makeApiSample(key) {
+  async function call(prompt, opts = {}) {
+    let res, lastErr = null;
+    for (const model of MODELS) {
+      try {
+        res = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST', signal: opts.signal,
+          headers: { 'content-type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+          body: JSON.stringify({ model, max_tokens: 1600, messages: [{ role: 'user', content: prompt }] })
+        });
+      } catch (e) {
+        throw { code: e && e.name === 'AbortError' ? 'cancelled' : 'network', message: String(e && e.message || e) };
+      }
+      if (res.status === 404) { lastErr = await res.text(); continue; }
+      break;
+    }
+    if (!res.ok) {
+      let detail = lastErr || '';
+      try { detail = (await res.text()) || detail; const j = JSON.parse(detail); detail = (j.error && j.error.message) || detail; } catch (e) {}
+      throw { code: res.status === 429 ? 'rate_limited' : (res.status === 401 || res.status === 403) ? 'auth' : 'api', status: res.status, message: String(detail).slice(0, 160) };
+    }
+    const data = await res.json();
+    const text = (data.content || []).filter(b => b.type === 'text').map(b => b.text).join('');
+    if (opts.onText) opts.onText({ text, delta: text });
+    return { text, truncated: data.stop_reason === 'max_tokens' };
+  }
+  call.json = async (prompt, opts) => {
+    const { text } = await call(prompt, opts);
+    try { return JSON.parse(text.replace(/```json|```/g, '').trim()); }
+    catch (e) { throw { code: 'api', message: 'Could not read the answer as JSON.' }; }
+  };
+  return call;
+}
+
+async function getSample() {
+  if (!claudeP) {
+    claudeP = (async () => {
+      try { return window.claude ? await window.claude.use('sample') : null; } catch (e) { return null; }
+    })();
+  }
+  const inClaude = await claudeP;
+  if (inClaude) return inClaude;
+  const key = getKey();
+  return key ? makeApiSample(key) : null;
+}
+
+function reducedMotion() { return window.matchMedia('(prefers-reduced-motion: reduce)').matches; }
+
+function focusFlag(fi, scroll) {
+  document.querySelectorAll('.on').forEach(n => n.classList.remove('on'));
+  document.querySelectorAll('[data-f="' + fi + '"]').forEach(n => n.classList.add('on'));
+  const card = document.getElementById('flag-' + fi);
+  if (card && scroll) card.scrollIntoView({ block: 'nearest', behavior: reducedMotion() ? 'auto' : 'smooth' });
+}
+
+function buildView(text, local, ai, extra) {
+  const L = I18N[state.lang];
+  let view;
+  if (ai) {
+    let verdict = ai.verdict, score = ai.score;
+    if (local.verdict === 'high' && verdict === 'low') { verdict = 'medium'; score = Math.max(score, 30); }
+    view = { source: 'full', verdict, score, headline: ai.headline || L.headline[verdict], explanation: ai.explanation,
+      flags: ai.flags.map(f => ({ ...f, title: TYPES[f.type][state.lang][0] })),
+      actions: ai.actions.length ? ai.actions : L.actions, verify: ai.verify };
+  } else {
+    view = { source: 'quick', verdict: local.verdict, score: local.score, headline: L.headline[local.verdict], explanation: '',
+      flags: local.flags.map(f => ({ ...f, title: TYPES[f.type][state.lang][0], why: TYPES[f.type][state.lang][1] })),
+      actions: L.actions, verify: [] };
+  }
+  return { ...view, text, ...extra };
+}
+
+function renderView(v) {
+  state.view = v;
+  const L = I18N[state.lang];
+  const box = document.getElementById('result');
+  box.replaceChildren();
+
+  const spans = resolveSpans(v.flags);
+  const msg = h('p', { class: 'message', lang: 'und' });
+  let pos = 0;
+  for (const sp of spans) {
+    if (sp.s > pos) msg.append(document.createTextNode(v.text.slice(pos, sp.s)));
+    msg.append(h('mark', { class: 'hl', tabindex: '0', role: 'button', 'data-f': sp.fi, title: v.flags[sp.fi].title,
+      onclick: () => focusFlag(sp.fi, true),
+      onkeydown: ev => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); focusFlag(sp.fi, true); } } },
+      v.text.slice(sp.s, sp.e)));
+    pos = sp.e;
+  }
+  if (pos < v.text.length) msg.append(document.createTextNode(v.text.slice(pos)));
+
+  const key = state.runId + ':' + v.verdict;
+  const animate = state.stampKey !== key;
+  state.stampKey = key;
+  const filled = Math.max(1, Math.ceil(v.score / 10));
+  const blocks = h('div', { class: 'blocks', role: 'img', 'aria-label': L.score + ' ' + v.score + ' ' + L.of },
+    Array.from({ length: 10 }, (_, i) => h('i', { class: i < filled ? 'f' : '' })));
+
+  box.append(h('section', { class: 'case ' + v.verdict },
+    h('span', { class: 'badge', text: v.source === 'full' ? L.full : L.quick }),
+    h('div', { class: 'exhibit', role: 'group', 'aria-label': L.found },
+      h('div', { class: 'bubble' }, msg),
+      h('div', { class: 'stamp ' + v.verdict + (animate ? ' thump' : '') }, L[v.verdict])),
+    spans.length ? h('p', { class: 'note', text: L.hint }) : null,
+    v.maskedCount ? h('p', { class: 'note', text: L.hidden(v.maskedCount) }) : null,
+    h('h2', { class: 'headline', text: v.headline }),
+    v.explanation ? h('p', { class: 'explain', text: v.explanation }) : null,
+    blocks,
+    h('div', { class: 'cap' }, h('span', { text: L.score + ': ' + v.score }), h('span', { text: L.of })),
+    h('div', { class: 'status', id: 'status' })));
+  setStatus(v.status);
+
+  const flagList = h('ul', { class: 'flags' });
+  v.flags.forEach((f, fi) => {
+    flagList.append(h('li', { class: 'flag', id: 'flag-' + fi, 'data-f': fi, tabindex: '0',
+      onclick: () => focusFlag(fi, false), onkeydown: ev => { if (ev.key === 'Enter') focusFlag(fi, false); } },
+      h('h3', { text: f.title }),
+      f.quotes.map(q => h('p', { class: 'quote', text: '“' + q + '”' })),
+      f.why ? h('p', { text: f.why }) : null));
+  });
+  box.append(h('section', { class: 'notes' }, h('h2', { text: L.signs }),
+    v.flags.length ? flagList : h('p', { class: 'note', text: L.none })));
+
+  const todo = h('ul', { class: 'todo' }, v.actions.map(a => h('li', {}, h('label', {}, h('input', { type: 'checkbox' }), h('span', { text: a })))));
+  box.append(h('section', { class: 'ticket' }, h('h2', { text: L.todo }), todo,
+    v.verify.length ? h('div', {}, h('hr', { class: 'sep' }), h('h2', { text: L.verify }), h('ul', { class: 'plain' }, v.verify.map(x => h('li', { text: x })))) : null));
+
+  const draftOut = h('div', { class: 'draft', id: 'draftOut' });
+  box.append(h('section', { class: 'help' },
+    h('h2', { text: L.paid }),
+    h('p', { text: L.paidText }),
+    h('div', { class: 'links' },
+      h('a', { href: 'https://cybercrime.gov.in', target: '_blank', rel: 'noopener noreferrer', text: L.cyber }),
+      h('a', { href: 'https://scores.sebi.gov.in', target: '_blank', rel: 'noopener noreferrer', text: L.scores })),
+    h('div', { class: 'row', style: 'margin-top:14px' }, h('button', { class: 'btn', id: 'draftBtn', type: 'button', onclick: makeDraft, text: L.draft })),
+    draftOut));
+}
+
+const STATIC = {
+  en: { signsTitle: 'Common scam signs', signsSub: 'Learn these and you can spot most scams yourself.', call: 'Call 1930 (cyber crime helpline)' },
+  ta: { signsTitle: 'பொதுவான மோசடி அறிகுறிகள்', signsSub: 'இவற்றை அறிந்தால் பெரும்பாலான மோசடிகளை நீங்களே கண்டுபிடிக்கலாம்.', call: '1930-ஐ அழைக்கவும் (சைபர் குற்ற உதவி எண்)' },
+  hi: { signsTitle: 'आम ठगी के संकेत', signsSub: 'इन्हें पहचान लें तो ज़्यादातर ठगी आप ख़ुद पकड़ सकते हैं।', call: '1930 पर कॉल करें (साइबर अपराध हेल्पलाइन)' }
+};
+const EXAMPLES = {
+  guaranteed: ['Your profit is ', 'guaranteed', '!'],
+  unrealistic: ['Turn ₹10,000 into ', '₹5 lakh in 3 months', '.'],
+  urgency: ['', 'Only 10 slots left', '. Pay today.'],
+  group: ['', 'Join our VIP Telegram group', '.'],
+  insider: ['Get ', 'insider tips', ' from big players.'],
+  advice: ['', 'Follow my calls', ' and win daily.'],
+  payment: ['Pay a ', '₹999 registration fee', ' to start.'],
+  sensitive: ['Share your ', 'OTP', ' to activate.'],
+  app: ['', 'Download our APK', ' to start investing.']
+};
+
+function renderStatic() {
+  const lang = state.lang, L = I18N[lang], S = STATIC[lang];
+  document.documentElement.lang = lang;
+  const set = (id, t) => { const el = document.getElementById(id); if (el) el.textContent = t; };
+  set('signsTitle', S.signsTitle);
+  set('signsSub', S.signsSub);
+  set('helpTitle', L.paid);
+  set('helpText', L.paidText);
+  set('callLink', S.call);
+  set('cyberLink', L.cyber);
+  set('scoresLink', L.scores);
+  const grid = document.getElementById('signsGrid');
+  if (grid) {
+    grid.replaceChildren();
+    Object.keys(EXAMPLES).forEach(t => {
+      const e = EXAMPLES[t];
+      grid.append(h('li', { class: 'sign' },
+        h('p', { class: 'eg', lang: 'en' }, e[0], h('mark', { text: e[1] }), e[2]),
+        h('h3', { text: TYPES[t][lang][0] }),
+        h('p', { text: TYPES[t][lang][1] })));
+    });
+  }
+}
+
+function renderEmpty() {
+  document.getElementById('result').replaceChildren();
+}
+
+function setStatus(s) {
+  const el = document.getElementById('status');
+  if (!el) return;
+  el.replaceChildren();
+  if (!s) return;
+  const L = I18N[state.lang];
+  if (s.kind === 'thinking') {
+    el.append(h('span', { class: 'spin', 'aria-hidden': 'true' }), h('span', { text: L.thinking }),
+      h('button', { class: 'chip', type: 'button', text: L.stop, onclick: () => state.ctl && state.ctl.abort() }));
+  } else {
+    el.append(h('span', { text: s.text }));
+  }
+}
+
+const AUTHMSG = {
+  en: 'The API key was not accepted. Check it and try again.',
+  ta: 'API key ஏற்கப்படவில்லை. சரிபார்த்து மீண்டும் முயற்சிக்கவும்.',
+  hi: 'API key स्वीकार नहीं हुई। जाँचकर दोबारा कोशिश करें।'
+};
+function errText(e) {
+  const E = I18N[state.lang].err;
+  const code = e && e.code;
+  if (code === 'auth') return AUTHMSG[state.lang];
+  if (E[code]) return E[code];
+  const detail = e && (e.message || e.status) ? ' (' + (e.status ? e.status + ': ' : '') + String(e.message || '').slice(0, 140) + ')' : '';
+  return E.def + detail;
+}
+
+async function run() {
+  const input = document.getElementById('input');
+  const raw = input.value.trim();
+  const L = I18N[state.lang];
+  if (!raw) { input.focus(); return; }
+  const id = ++state.runId;
+  if (state.ctl) state.ctl.abort();
+  const { text, n } = mask(raw);
+  const local = scan(text);
+  const extra = { maskedCount: n, status: null };
+  renderView(buildView(text, local, null, extra));
+  document.getElementById('result').scrollIntoView({ block: 'start', behavior: reducedMotion() ? 'auto' : 'smooth' });
+
+  const sample = await getSample();
+  if (id !== state.runId) return;
+  if (!sample) { state.view.status = { kind: 'text', text: L.noai }; setStatus(state.view.status); return; }
+
+  const ctl = new AbortController();
+  state.ctl = ctl;
+  state.view.status = { kind: 'thinking' };
+  setStatus(state.view.status);
+  try {
+    const out = await sample.json(buildPrompt(text, state.kind, state.lang), { signal: ctl.signal, modelTier: 'default' });
+    if (id !== state.runId) return;
+    const ai = normalizeAI(out, text);
+    if (!ai) throw { code: 'bad' };
+    renderView(buildView(text, local, ai, extra));
+  } catch (e) {
+    if (id !== state.runId) return;
+    const code = e && e.code;
+    if (code === 'cancelled') { state.view.status = null; setStatus(null); return; }
+    const msg = errText(e);
+    state.view.status = { kind: 'text', text: msg };
+    setStatus(state.view.status);
+  }
+}
+
+function localComplaint(v) {
+  const signs = v.flags.map(f => '- ' + TYPES[f.type].en[0]).join('\n') || '- Suspicious investment solicitation';
+  const quotes = v.flags.flatMap(f => f.quotes).slice(0, 4).map(q => '- "' + q + '"').join('\n');
+  return `To,
+The Officer in Charge
+[Cyber Crime Portal (cybercrime.gov.in) / SEBI SCORES]
+
+Subject: Complaint about a suspicious investment message / offer
+
+Respectfully,
+
+I, [your full name], resident of [your city and state], received a suspicious investment-related message on [date and time] through [WhatsApp / Telegram / SMS / social media / phone call] from [sender number, handle or channel name].
+
+The message claimed, among other things:
+${quotes || '- [copy the key claims from the message here]'}
+
+I believe it shows these warning signs of fraud:
+${signs}
+
+[If you paid or shared details: I transferred Rs. [amount] on [date] via [UPI / bank transfer] to [UPI ID / account number], transaction ID [ID]. I also shared [OTP / documents / none].]
+
+I request you to investigate this matter and take appropriate action against the persons responsible. I can provide screenshots and transaction proof on request.
+
+Yours faithfully,
+[Name]
+[Phone number] | [Email]
+[Date]`;
+}
+
+async function makeDraft() {
+  const L = I18N[state.lang];
+  const out = document.getElementById('draftOut');
+  const btn = document.getElementById('draftBtn');
+  const v = state.view;
+  if (!v) return;
+  out.replaceChildren();
+  const ta = h('textarea', { 'aria-label': L.draft, lang: 'en' });
+  const note = h('p', { class: 'note', id: 'draftMsg' });
+  out.append(note);
+  const finish = (text, noteText) => {
+    ta.value = text.trim();
+    if (!ta.isConnected) out.append(ta);
+    note.textContent = noteText;
+    const copyBtn = h('button', { class: 'btn ghost', type: 'button', style: 'margin-top:10px', text: L.copy, onclick: async () => {
+      try { await navigator.clipboard.writeText(ta.value); } catch (e) { ta.select(); try { document.execCommand('copy'); } catch (e2) {} }
+      copyBtn.textContent = L.copied; setTimeout(() => { copyBtn.textContent = L.copy; }, 1800);
+    } });
+    out.append(copyBtn);
+  };
+  btn.disabled = true;
+  try {
+    const sample = await getSample();
+    if (!sample) { finish(localComplaint(v), L.draftNote); return; }
+    note.textContent = L.drafting;
+    const { text } = await sample(buildComplaintPrompt(v.text, v.flags), {
+      modelTier: 'default', onText: ({ text }) => { if (!ta.isConnected) out.append(ta); ta.value = text; }
+    });
+    finish(text, L.draftNote);
+  } catch (e) {
+    if (ta.isConnected) ta.remove();
+    out.replaceChildren();
+    out.append(h('p', { class: 'note', text: errText(e) }));
+    const fb = h('div', {});
+    out.append(fb);
+    const ta2 = h('textarea', { 'aria-label': L.draft, lang: 'en' });
+    ta2.value = localComplaint(v);
+    fb.append(ta2);
+  } finally { btn.disabled = false; }
+}
+
+function init() {
+  renderEmpty();
+  renderStatic();
+  const input = document.getElementById('input');
+  const chips = document.getElementById('samples');
+  SAMPLES.forEach(s => chips.append(h('button', { class: 'chip', type: 'button', text: s.label, onclick: () => {
+    input.value = s.text;
+    state.kind = s.kind;
+    document.querySelector('input[name="kind"][value="' + s.kind + '"]').checked = true;
+    input.focus();
+  } })));
+  document.getElementById('go').addEventListener('click', run);
+  document.getElementById('clear').addEventListener('click', () => {
+    input.value = ''; state.runId++; if (state.ctl) state.ctl.abort(); state.view = null;
+    renderEmpty();
+    input.focus();
+  });
+  document.querySelectorAll('input[name="kind"]').forEach(r => r.addEventListener('change', () => { state.kind = r.value; }));
+  document.querySelectorAll('input[name="lang"]').forEach(r => r.addEventListener('change', () => {
+    state.lang = r.value;
+    document.documentElement.lang = r.value;
+    renderStatic();
+    if (state.view) run();
+  }));
+}
+if (typeof document !== 'undefined' && document.getElementById('go')) init();
+</script>
+</body>
+</html>
